@@ -282,8 +282,8 @@ function random(min,max){
 //随机获取一个四拼版
 function getTetrominoRandom(){
     var index = random(0,7);
-    return tetromino_O;
-    // return tetrominoes[index];
+    // return tetromino_O;
+    return tetrominoes[index];
 }
 //重新开始坠落
 function initDrop(){
