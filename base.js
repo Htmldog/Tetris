@@ -62,20 +62,28 @@ function moveTetrominoByXY(arr,x,y){
 //将指定四拼版在指定x,y坐标处绘制
 function drawTetrominoByXY(arr,x,y){
     var tetro = moveTetrominoByXY(arr,x,y);
-    var temp;
+    var temp = moveTetrominoByXY(arr,move_x,move_y_old);
     var state = isOutOfBounds(tetro);
     if(state=="outY"){
         clearInterval(window.dropTimer);
-        temp = moveTetrominoByXY(arr,move_x,move_y_old);
         drawTetromino(temp);
         translateTetrominoToSolid();
         dropBoxSomeLine();
         initDrop();
     }
     if(state=="noOut"){
-        drawTetromino(tetro);
-        if(isCrash(tetro)){
+        //若没有超出边界，应该先判断是否发生碰撞，
+        //没有发生才执行drawTetromino(tetro)
+        //若发生temp = moveTetrominoByXY(arr,move_x,move_y_old);drawTetromino(temp);initDrop();
+        // drawTetromino(tetro);
+        if(isCrash(temp)){
+            clearInterval(window.dropTimer);
+            drawTetromino(temp);
+            translateTetrominoToSolid();
+            dropBoxSomeLine();
             initDrop();
+        }else{
+            drawTetromino(tetro);
         }
     }
     if(state=="outX"){
@@ -123,7 +131,7 @@ function dropTetromino(){
     },dropTimerTime);
 }
 //判断一个四拼版的最大y值
-function getMaxY(arr){
+function _getMaxY(arr){
     var maxY=arr[0];
     for(var i=0;i<3;i++){
         if(maxY.y<=arr[i+1].y){
@@ -132,22 +140,34 @@ function getMaxY(arr){
     }
     return maxY;
 }
+function getMaxY(arr){
+    var arrMaxY=[];
+    var maxY = _getMaxY(arr);
+    for(var i=0;i<4;i++){
+        if(arr[i].y==maxY.y){
+            arrMaxY.push(arr[i]);
+        }
+    }
+    return arrMaxY;
+}
 //判断一个四拼版有么有发生碰撞
 function isCrash(arr){
-    var maxYBox=getMaxY(arr);
+    var maxYBoxs=getMaxY(arr);
     var nextBox={};
-    nextBox.x=maxYBox.x;
-    nextBox.y=maxYBox.y+1;
-    if(nextBox.y<=19){
-        var nextBoxIndex=xyToIndex(nextBox.x,nextBox.y);
-        var nextBoxState=boxs[nextBoxIndex].getAttribute("state");
-        if(nextBoxState==1){
-            clearInterval(window.dropTimer);
-            translateTetrominoToSolid();
-            dropBoxSomeLine();
-            dirKey=false;
-            return true;
-        }
+    for(var i=0,len=maxYBoxs.length;i<len;i++){
+        nextBox.x=maxYBoxs[i].x;
+        nextBox.y=maxYBoxs[i].y+1;
+        if(nextBox.y<=19){
+            var nextBoxIndex=xyToIndex(nextBox.x,nextBox.y);
+            var nextBoxState=boxs[nextBoxIndex].getAttribute("state");
+            if(nextBoxState==1){
+                clearInterval(window.dropTimer);
+                translateTetrominoToSolid();
+                dropBoxSomeLine();
+                dirKey=false;
+                return true;
+            }
+        }       
     }
     return false;
 }
@@ -282,7 +302,6 @@ function random(min,max){
 //随机获取一个四拼版
 function getTetrominoRandom(){
     var index = random(0,7);
-    // return tetromino_O;
     return tetrominoes[index];
 }
 //重新开始坠落
