@@ -187,6 +187,7 @@ function countNeedDelBox(){
     var temp;
     var count;
     var score=0;
+    var result={};
     for(var y=19;y>-1;y--){
         count=0;
         for(var x=0;x<10;x++){
@@ -198,9 +199,13 @@ function countNeedDelBox(){
         }
         if(count==10){
             score++;
+            if(!result.startLine){
+                result.startLine=y;
+            } 
         }
     }
-    return score;
+    result.score=score;
+    return result;
 }
 //四拼版碰撞静止后，改变其state状态
 function translateTetrominoToSolid(){
@@ -228,12 +233,12 @@ function delOneLineBox(n){
     }
 }
 //返回实心单元下落指定行后的下标
-function getNeedDropBox(n){
+function getNeedDropBox(n,startLine){
     var index,index2;
     var temp,temp2;
     var arr=[];
     for(var x=0;x<10;x++){
-        for(var y=0;y<20;y++){
+        for(var y=startLine;y>-1;y--){
             index = xyToIndex(x,y);
             temp = boxs[index];
             if(temp.getAttribute("state")==1){
@@ -258,18 +263,22 @@ function drawAfterDrop(arr){
 //满格消行
 function dropBoxSomeLine(){
     var count=1;
-    var line = countNeedDelBox();
+    var result = countNeedDelBox();
+    var line = result.score;
+    var startLine = result.startLine;
+    var temp =startLine;
     if(!line)return;
     //消除满格行
     for(var i=0;i<20;i++){
         if(count>line){
             break;
         }
-        delOneLineBox(20-count);
+        delOneLineBox(startLine);
+        startLine--;
         count++;
     }
     //下落
-    var arr = getNeedDropBox(line);
+    var arr = getNeedDropBox(line,temp);
     drawAfterDrop(arr);
     //显示分数
     var temp = parseInt(J_score.innerHTML);
